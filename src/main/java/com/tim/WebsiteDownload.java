@@ -12,19 +12,24 @@ import java.io.FileWriter;
 import java.io.File;
 
 import org.jsoup.nodes.Document;
-import org.jsoup.select.Elements;
 import org.jsoup.Jsoup;
 import org.jsoup.Connection;
 
 public class WebsiteDownload {
     private Connection connection;
 
-    public WebsiteDownload() {
-        
+    public WebsiteDownload(String url) {
+        this(Jsoup.connect(url));
     }
 
     public WebsiteDownload(Connection connection) {
         this.connection = connection;
+    }
+
+    public void getAndDownloadAll(int timeout, String link, String element, String path) {
+        Document doc = this.get(link);
+        List<String> links = WebsiteParser.getLinksByElement(doc, element);
+        downloadAll(timeout, links, path);
     }
 
     public void downloadLink(int timeout, String link, String path) {
@@ -39,12 +44,7 @@ public class WebsiteDownload {
 
         Pattern htmlFilePattern = Pattern.compile("[a-z]+:.*\\.com.*\\/(.*)\\.(htm|html)");
         for (String link : links) {
-            Document doc = null;
-            try {
-                doc = this.connection.url(link).get();
-            } catch (IOException io) {
-                throw new UncheckedIOException(io);
-            }
+            Document doc = this.get(link);
             
             Matcher matcher = htmlFilePattern.matcher(link);
             if (!matcher.matches()) {
@@ -67,14 +67,6 @@ public class WebsiteDownload {
         }
     }
 
-    public static List<String> getLinksByElement(Document document, String tag) {
-        return document.getElementsByTag(tag).stream()
-            .map(element -> element.getElementsByTag("a"))
-            .flatMap(Elements::stream)
-            .map(element ->  element.attr("href"))
-            .collect(Collectors.toList());
-    }
-
     public static void write(Document document, String path) {
         try (FileWriter writer = new FileWriter(new File(path))) {
             write(document, writer);
@@ -90,5 +82,14 @@ public class WebsiteDownload {
             throw new UncheckedIOException(io);
         }
         
+    }
+
+    private Document get(String url) {
+        try {
+            return this.connection.url(url).get();
+        } catch (IOException io) {
+            throw new UncheckedIOException(io);
+        }
+            
     }
 }

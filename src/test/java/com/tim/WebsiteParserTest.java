@@ -5,6 +5,7 @@ import org.junit.Test;
 import org.jsoup.nodes.Document;
 
 import java.io.File;
+import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.jsoup.Jsoup;
@@ -22,5 +23,13 @@ public class WebsiteParserTest {
         });
         String expected = "paragraph 1\nparagraph 2\nparagraph 3";
         assertEquals(expected, stripped);
+    }
+
+    @Test
+    public void getLinks() throws Exception {
+        File html = new File("src/test/resources/links.html");
+        Document doc = Jsoup.parse(html, "UTF-8");
+        List<String> links = WebsiteParser.getLinksByElement(doc, "table");
+        assertEquals(3, links.size());
     }
 }

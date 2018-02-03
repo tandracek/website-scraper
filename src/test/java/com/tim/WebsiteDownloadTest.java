@@ -25,14 +25,6 @@ public class WebsiteDownloadTest {
     }
 
     @Test
-    public void getLinks() throws Exception {
-        File html = new File("src/test/resources/links.html");
-        Document doc = Jsoup.parse(html, "UTF-8");
-        List<String> links = WebsiteDownload.getLinksByElement(doc, "table");
-        assertEquals(3, links.size());
-    }
-
-    @Test
     public void writeToFile() throws Exception {
         String path = "src/test/resources/out/actual.html";
         File html = new File("src/test/resources/links.html");
