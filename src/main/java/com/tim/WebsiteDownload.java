@@ -13,9 +13,15 @@ import java.io.File;
 
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
+import org.jsoup.Jsoup;
+import org.jsoup.Connection;
 
 public class WebsiteDownload {
     private Connection connection;
+
+    public WebsiteDownload() {
+        
+    }
 
     public WebsiteDownload(Connection connection) {
         this.connection = connection;
@@ -33,7 +39,13 @@ public class WebsiteDownload {
 
         Pattern htmlFilePattern = Pattern.compile("[a-z]+:.*\\.com.*\\/(.*)\\.(htm|html)");
         for (String link : links) {
-            Document doc = this.connection.get(link);
+            Document doc = null;
+            try {
+                doc = this.connection.url(link).get();
+            } catch (IOException io) {
+                throw new UncheckedIOException(io);
+            }
+            
             Matcher matcher = htmlFilePattern.matcher(link);
             if (!matcher.matches()) {
                 throw new RuntimeException("Unable to parse the url to find a filename");

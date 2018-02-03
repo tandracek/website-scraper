@@ -49,9 +49,7 @@ public class WebsiteDownloadTest {
         List<String> links = Arrays.asList("http://www.test.com/link1.htm", 
                                            "http://www.something.com/foo/link2.html",
                                            "http://www.another.com/bar/foo/link3.html");
-        WebsiteDownload download = new WebsiteDownload(link -> {
-            return Jsoup.parse(String.format("<div id='%s'>a test</div>", link));
-        });
+        WebsiteDownload download = new WebsiteDownload(new StaticConnection());
         download.downloadAll(100, links, path);
         File link1 = new File(path + "/link1");
         assertTrue(link1.exists());
@@ -67,27 +65,8 @@ public class WebsiteDownloadTest {
         List<String> links = Arrays.asList("http://www.test.com/link1.htm", 
                                            "http://www.something.com/foo/link2.html",
                                            "http://www.another.com/bar/foo/link3.html");
-        ConnectionInterval interval = new ConnectionInterval(new Date().getTime(), 500);
+        StaticConnection interval = new StaticConnection(new Date().getTime(), 500);
         WebsiteDownload download = new WebsiteDownload(interval);
         download.downloadAll(500, links, path);        
-    }
-
-    public class ConnectionInterval implements Connection {
-        public long interval;
-        public int timeout;
-        public int count;
-        public ConnectionInterval(long interval, int timeout) {
-            this.interval = interval;
-            this.timeout = timeout;
-        }
-        public Document get(String link) {
-            long curr = new Date().getTime();
-            long difference = curr - interval;
-            if (count++ > 0) {
-                assertTrue(difference >= timeout);    
-            }
-            interval = curr;
-            return Jsoup.parse(String.format("<div id='%s'>a test</div>", link));
-        }
     }
 }
