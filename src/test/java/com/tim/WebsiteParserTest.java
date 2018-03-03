@@ -32,4 +32,17 @@ public class WebsiteParserTest {
         List<String> links = WebsiteParser.getLinksByElement(doc, "table");
         assertEquals(3, links.size());
     }
+
+    //TODO finish this test
+    @Test
+    public void breaks() throws Exception { 
+        File html = new File("src/test/resources/breaks.html");
+        Document doc = Jsoup.parse(html, "UTF-8");
+        String stripped = WebsiteParser.strip(doc, "p", element -> {
+            return element.children().isEmpty() && element.hasText();
+        });
+        System.out.println(stripped);
+        String expected = "line1\nline2\nline3\nline4";
+        assertEquals(expected, stripped);
+    }
 }

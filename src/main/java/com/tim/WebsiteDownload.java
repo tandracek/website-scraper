@@ -18,9 +18,7 @@ import org.jsoup.Connection;
 public class WebsiteDownload {
     private Connection connection;
 
-    public WebsiteDownload(String url) {
-        this(Jsoup.connect(url));
-    }
+    public WebsiteDownload() {}
 
     public WebsiteDownload(Connection connection) {
         this.connection = connection;
@@ -44,6 +42,7 @@ public class WebsiteDownload {
 
         Pattern htmlFilePattern = Pattern.compile("[a-z]+:.*\\.com.*\\/(.*)\\.(htm|html)");
         for (String link : links) {
+            System.out.println(String.format("Getting link %s", link));
             Document doc = this.get(link);
             
             Matcher matcher = htmlFilePattern.matcher(link);
@@ -51,7 +50,7 @@ public class WebsiteDownload {
                 throw new RuntimeException("Unable to parse the url to find a filename");
             }
             String filename = matcher.group(1);
-            if (filename.isEmpty()) {                
+            if (filename == null || filename.isEmpty()) {                
                 // TODO make up a filename
                 System.out.println("filename is empty");
             }    
@@ -85,11 +84,18 @@ public class WebsiteDownload {
     }
 
     private Document get(String url) {
+        if (this.connection == null) {
+            this.connection = getJsoupConnection(url);
+        }
         try {
             return this.connection.url(url).get();
         } catch (IOException io) {
             throw new UncheckedIOException(io);
         }
             
+    }
+
+    private static Connection getJsoupConnection(String url) {
+        return Jsoup.connect(url);
     }
 }
