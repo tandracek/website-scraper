@@ -22,8 +22,7 @@ public class StaticConnection implements Connection {
     private String link;
 
     public StaticConnection() {
-        this.interval = 0;
-        this.timeout = 0;
+        this(0, 0);
     }
 
     public StaticConnection(long interval, int timeout) {
@@ -177,7 +176,7 @@ public class StaticConnection implements Connection {
             }
             interval = curr;
         }
-        return Jsoup.parse(String.format("<div id='%s'>a test</div>", this.link));
+        return Jsoup.parse(String.format("<div id='%s'>a test</div><p><a href='/link'>a link</a></p>", this.link));
     }
 
     @Override

@@ -40,7 +40,8 @@ public class WebsiteDownloadTest {
         String path = "src/test/resources/out";
         List<String> links = Arrays.asList("http://www.test.com/link1.htm", 
                                            "http://www.something.com/foo/link2.html",
-                                           "http://www.another.com/bar/foo/link3.html");
+                                           "http://www.another.com/bar/foo/link3.html",
+                                           "http://www.whatever.com/scripts/script-01.shtml");
         WebsiteDownload download = new WebsiteDownload(new StaticConnection());
         download.downloadAll(100, links, path);
         File link1 = new File(path + "/link1");
@@ -49,6 +50,8 @@ public class WebsiteDownloadTest {
         assertTrue(link2.exists());
         File link3 = new File(path + "/link3");
         assertTrue(link3.exists());
+        File script1 = new File(path + "/script-01");
+        assertTrue(script1.exists());
     }
 
     @Test

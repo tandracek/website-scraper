@@ -24,9 +24,10 @@ public class WebsiteDownload {
         this.connection = connection;
     }
 
-    public void getAndDownloadAll(int timeout, String link, String element, String path) {
+    public void getAndDownloadAll(int timeout, String link, String selector, String path) {
         Document doc = this.get(link);
-        List<String> links = WebsiteParser.getLinksByElement(doc, element);
+        String baseUrl = WebsiteParser.getBaseUrl(link);
+        List<String> links = WebsiteParser.getLinksSelector(doc, baseUrl, selector);
         downloadAll(timeout, links, path);
     }
 
@@ -40,7 +41,7 @@ public class WebsiteDownload {
             throw new RuntimeException("Given path " + path + " should be a directory.");
         }
 
-        Pattern htmlFilePattern = Pattern.compile("[a-z]+:.*\\.com.*\\/(.*)\\.(htm|html)");
+        Pattern htmlFilePattern = Pattern.compile("[a-z]+:.*\\.com.*\\/(.*)\\.(htm|html|shtml)");
         for (String link : links) {
             System.out.println(String.format("Getting link %s", link));
             Document doc = this.get(link);

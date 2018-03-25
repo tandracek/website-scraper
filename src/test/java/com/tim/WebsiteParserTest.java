@@ -15,6 +15,13 @@ import static org.junit.Assert.assertEquals;
 public class WebsiteParserTest {
 
     @Test
+    public void baseUrl() {
+        String url = "http://wwww.something.com/whatever/sure?blah=eh";
+        String baseUrl = WebsiteParser.getBaseUrl(url);
+        assertEquals("http://wwww.something.com", baseUrl);
+    }
+
+    @Test
     public void strip() throws Exception {
         String html = FileUtils.readFileToString(new File("src/test/resources/strip.html"), "UTF8");
         Document document = Jsoup.parse(html);
@@ -29,20 +36,8 @@ public class WebsiteParserTest {
     public void getLinks() throws Exception {
         File html = new File("src/test/resources/links.html");
         Document doc = Jsoup.parse(html, "UTF-8");
-        List<String> links = WebsiteParser.getLinksByElement(doc, "table");
+        List<String> links = WebsiteParser.getLinksSelector(doc, "base.", "table td a");
         assertEquals(3, links.size());
-    }
-
-    //TODO finish this test
-    @Test
-    public void breaks() throws Exception { 
-        File html = new File("src/test/resources/breaks.html");
-        Document doc = Jsoup.parse(html, "UTF-8");
-        String stripped = WebsiteParser.strip(doc, "p", element -> {
-            return element.children().isEmpty() && element.hasText();
-        });
-        System.out.println(stripped);
-        String expected = "line1\nline2\nline3\nline4";
-        assertEquals(expected, stripped);
+        assertEquals("base.first", links.get(0));
     }
 }
