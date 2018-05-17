@@ -1,23 +1,37 @@
 package com.tim;
 
-import java.util.List;
-import java.util.Arrays;
-import java.util.Date;
-import java.io.File;
-
-import org.jsoup.nodes.Document;
-import org.apache.commons.io.FileUtils;
-import org.jsoup.Jsoup;
-import org.junit.After;
-import org.junit.Test;
-
-import junitx.framework.FileAssert;
-
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
+import java.io.File;
+import java.util.Arrays;
+import java.util.List;
+
+import org.apache.commons.io.FileUtils;
+import org.jsoup.Connection;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.junit.After;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(Jsoup.class)
 public class WebsiteDownloadTest {
     public static final String path = "src/test/resources";
+    private static Connection mockedConnection;
+
+    @BeforeClass
+    public static void beforeClass() {
+        mockedConnection = mock(Connection.class);
+    }
 
     @After
     public void teardown() throws Exception {
@@ -25,25 +39,19 @@ public class WebsiteDownloadTest {
     }
 
     @Test
-    public void writeToFile() throws Exception {
-        String path = "src/test/resources/out/actual.html";
-        File html = new File("src/test/resources/links.html");
-        Document doc = Jsoup.parse(html, "UTF-8");
-        WebsiteDownload.write(doc, path);
-
-        File actual = new File(path);
-        FileAssert.assertEquals(html, actual);
-    }
-
-    @Test
-    public void downloadAll() {
+    public void downloadAll() throws Exception {
         String path = "src/test/resources/out";
         List<String> links = Arrays.asList("http://www.test.com/link1.htm", 
                                            "http://www.something.com/foo/link2.html",
                                            "http://www.another.com/bar/foo/link3.html",
                                            "http://www.whatever.com/scripts/script-01.shtml");
-        WebsiteDownload download = new WebsiteDownload(new StaticConnection());
-        download.downloadAll(100, links, path);
+
+        Document doc = Jsoup.parse("<a>test</a>");
+        mockStatic(Jsoup.class);
+        PowerMockito.when(Jsoup.connect(anyString())).thenReturn(mockedConnection);
+        when(mockedConnection.get()).thenReturn(doc);
+
+        WebsiteDownload.downloadAll(100, links, path);
         File link1 = new File(path + "/link1");
         assertTrue(link1.exists());
         File link2 = new File(path + "/link2");
@@ -55,13 +63,40 @@ public class WebsiteDownloadTest {
     }
 
     @Test
-    public void downloadWithInterval() {
+    public void downloadWithInterval() throws Exception {
         String path = "src/test/resources/out";
         List<String> links = Arrays.asList("http://www.test.com/link1.htm", 
                                            "http://www.something.com/foo/link2.html",
                                            "http://www.another.com/bar/foo/link3.html");
-        StaticConnection interval = new StaticConnection(new Date().getTime(), 500);
-        WebsiteDownload download = new WebsiteDownload(interval);
-        download.downloadAll(500, links, path);        
+
+        Document doc = Jsoup.parse("<a>test</a>");
+        mockStatic(Jsoup.class);
+        PowerMockito.when(Jsoup.connect(anyString())).thenReturn(mockedConnection);
+        when(mockedConnection.get()).thenReturn(doc);
+
+        StupidTime time = new StupidTime(System.currentTimeMillis() - 500);
+        when(mockedConnection.get()).then(something -> {
+            long elapsed = System.currentTimeMillis() - time.getTime();
+            assertTrue(elapsed >= 500);
+            time.setTime(System.currentTimeMillis());
+            return doc;
+        });
+        WebsiteDownload.downloadAll(500, links, path);
+    }
+
+    private class StupidTime {
+        private long time;
+
+        public StupidTime(long time) {
+            this.time = time;
+        }
+
+        public long getTime() {
+            return this.time;
+        }
+
+        public void setTime(long time) {
+            this.time = time;
+        }
     }
 }

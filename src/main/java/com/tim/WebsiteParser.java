@@ -6,6 +6,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
@@ -20,17 +21,21 @@ public class WebsiteParser {
         return "";
     }
 
-    public static String strip(Document document, String element, Function<Element, Boolean> filter) {
-        return document.getElementsByTag(element).stream()
+    public static String strip(String html, String selector, Function<Element, Boolean> filter) {
+        return toDocument(html).select(selector).stream()
                 .filter(ele -> filter.apply(ele))
                 .map(Element::html)
                 .collect(Collectors.joining("\n"));
     }
 
-    public static List<String> getLinksSelector(Document document, String baseUrl, String selector) {
-        return document.select(selector).stream()
+    public static List<String> getLinksSelector(String html, String baseUrl, String selector) {
+        return toDocument(html).select(selector).stream()
             .map(element ->  element.attr("href"))
             .map(link -> baseUrl + link)
             .collect(Collectors.toList());
+    }
+
+    private static Document toDocument(String html) {
+        return Jsoup.parse(html);
     }
 }
